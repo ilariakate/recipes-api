@@ -1,0 +1,17 @@
+content:
+- Hiding and overriding
+- toString()
+- Lambda expressions
+- The Set interface
+- Threads as objects
+- Custom threads
+- The Collections Framework overview
+- Thread management
+- Thread synchronization
+- The Map interface
+- Getting data from REST
+- Posting and deleting data via REST
+- Handling requests with bodies
+- Processing strings
+- HashMap
+- Exception handling
