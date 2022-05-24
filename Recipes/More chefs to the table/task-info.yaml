@@ -814,6 +814,236 @@ files:
         }
     }
   learner_created: false
+- name: src/recipes/repository/RecipeRepository.java
+  visible: true
+  text: |
+    package recipes.repository;
+
+    import org.springframework.data.repository.CrudRepository;
+    import org.springframework.stereotype.Repository;
+    import recipes.model.Recipe;
+
+    import java.util.List;
+    import java.util.Optional;
+
+    @Repository
+    public interface RecipeRepository extends CrudRepository<Recipe, Long> {
+
+        Optional<List<Recipe>> findAllByCategoryIgnoreCaseOrderByDateDesc(String category);
+        Optional<List<Recipe>> findAllByNameContainingIgnoreCaseOrderByDateDesc(String name);
+        Optional<Recipe> findById(long id);
+
+    }
+  learner_created: true
+- name: src/recipes/controller/RecipeController.java
+  visible: true
+  text: |+
+    package recipes.controller;
+
+
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.server.ResponseStatusException;
+    import recipes.model.Recipe;
+    import recipes.service.RecipeService;
+
+    import javax.validation.Valid;
+    import java.time.LocalDateTime;
+    import java.util.Collections;
+    import java.util.List;
+    import java.util.Map;
+
+    @RestController
+    @RequestMapping("/api/recipe")
+    public class RecipeController {
+
+        private final RecipeService recipeService;
+
+        public RecipeController(RecipeService recipeService) {
+            this.recipeService = recipeService;
+        }
+
+        @PostMapping("/new")
+        public Map<String, Long> addRecipe(@Valid @RequestBody Recipe recipe) {
+            recipe.setDate(LocalDateTime.now());
+            Recipe savedRecipe = recipeService.save(recipe);
+            return Collections.singletonMap("id", savedRecipe.getId());
+        }
+
+        @GetMapping("/{id}")
+        public Recipe getRecipe(@PathVariable long id) {
+            Recipe recipe = recipeService.findRecipeById(id);
+            if (recipe == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+            return recipe;
+        }
+
+        @DeleteMapping("/{id}")
+        @ResponseStatus(HttpStatus.NO_CONTENT)
+        public void deleteRecipe(@PathVariable long id) {
+            Recipe recipe = recipeService.findRecipeById(id);
+            if (recipe == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+            recipeService.deleteRecipeById(id);
+        }
+
+        @PutMapping("/{id}")
+        @ResponseStatus(HttpStatus.NO_CONTENT)
+        public void updateRecipe(@PathVariable long id, @Valid @RequestBody Recipe recipe) {
+            Recipe recipeFromDb = recipeService.findRecipeById(id);
+            if (recipeFromDb == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+            recipe.setId(id);
+            recipe.setDate(LocalDateTime.now());
+            recipeService.save(recipe);
+        }
+
+        @GetMapping("/search")
+        public List<Recipe> searchRecipe(@RequestParam(required = false) String category, @RequestParam(required = false) String name) {
+            if (category != null && !category.isBlank()) {
+                return recipeService.getSortedRecipeByCategory(category);
+            }
+            return recipeService.getSortedRecipeByName(name);
+        }
+
+    }
+
+
+  learner_created: true
+- name: src/recipes/service/RecipeService.java
+  visible: true
+  text: |
+    package recipes.service;
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.stereotype.Service;
+    import org.springframework.web.server.ResponseStatusException;
+    import recipes.model.Recipe;
+    import recipes.repository.RecipeRepository;
+
+    import java.util.Collections;
+    import java.util.List;
+
+    @Service
+    public class RecipeService {
+
+        private final RecipeRepository recipeRepository;
+
+        public RecipeService(RecipeRepository recipeRepository) {
+            this.recipeRepository = recipeRepository;
+        }
+
+        public Recipe save(Recipe recipe) {
+            return recipeRepository.save(recipe);
+        }
+
+        public Recipe getById(Long id) {
+            var foundRecipe = recipeRepository.findById(id);
+            if (foundRecipe.isPresent()) {
+                return foundRecipe.get();
+            } else {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+        }
+
+        public void deleteRecipeById(long id) {
+            var foundRecipe = recipeRepository.findById(id);
+            if (foundRecipe.isPresent())
+                recipeRepository.delete(foundRecipe.get());
+            else
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        public void updateById(Long id, Recipe recipe) {
+            var foundRecipe = recipeRepository.findById(id);
+            if (foundRecipe.isPresent()) {
+                recipe.setId(id);
+                recipeRepository.save(recipe);
+            }
+            else
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        public List<Recipe> getAllByCategory(String category) {
+            var foundRecipes =
+                    recipeRepository.findAllByCategoryIgnoreCaseOrderByDateDesc(category);
+            return foundRecipes.orElse(Collections.emptyList());
+        }
+
+        public List<Recipe> getAllByNameContaining(String name) {
+            var foundRecipes =
+                    recipeRepository.findAllByNameContainingIgnoreCaseOrderByDateDesc(name);
+            return foundRecipes.orElse(Collections.emptyList());
+        }
+    }
+  learner_created: true
+- name: src/recipes/model/Recipe.java
+  visible: true
+  text: |
+    package recipes.model;
+
+    import com.fasterxml.jackson.annotation.JsonIgnore;
+    import lombok.*;
+    import org.hibernate.annotations.Cascade;
+    import org.springframework.format.annotation.DateTimeFormat;
+
+    import javax.persistence.*;
+    import javax.validation.constraints.NotBlank;
+    import javax.validation.constraints.NotNull;
+    import javax.validation.constraints.Size;
+    import java.time.LocalDateTime;
+    import java.util.List;
+
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @Entity
+    public class Recipe {
+
+        @Id
+        @GeneratedValue
+        @JsonIgnore
+        private Long id;
+
+        private LocalDateTime date = LocalDateTime.now();
+        @NotBlank
+        private String name;
+        @NotBlank
+        private String description;
+        @NotBlank
+        private String category;
+
+        @ElementCollection
+        @CollectionTable(name = "ingredients", joinColumns = @JoinColumn(name = "id"))
+        @EqualsAndHashCode.Exclude
+        @Size(min = 1)
+        @NotNull
+        @Cascade(value = org.hibernate.annotations.CascadeType.ALL)
+        private List<@NotBlank String> ingredients;
+
+        @ElementCollection
+        @CollectionTable(name = "directions", joinColumns = @JoinColumn(name = "id"))
+        @EqualsAndHashCode.Exclude
+        @Size(min = 1)
+        @NotNull
+        @Cascade(value = org.hibernate.annotations.CascadeType.ALL)
+        private List<@NotBlank String> directions;
+
+        public Recipe(String name, String description, List<String> ingredients,
+                      List<String> directions, String category) {
+            this.name = name;
+            this.description = description;
+            this.ingredients = ingredients;
+            this.directions = directions;
+            this.category = category;
+        }
+    }
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/180/stages/921/implement#comment
 status: Unchecked
-record: -1
+record: 5

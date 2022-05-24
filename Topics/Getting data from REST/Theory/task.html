@@ -35,8 +35,7 @@ public class TaskController {
    In addition to Postman, it is also possible to send a 
    <code class="language-java">GET</code>request to the server through a browser. To do so, simply open the browser, and navigate to the same URL as Postman (in this example, 
    <em>http://localhost:8080/test</em>). 
-  </div>
-  <p></p> 
+  </div> 
   <h5 id="get-with-collections">GET with Collections</h5> 
   <p>A list is a good way to store data. Sometimes, we want to return a full list or a specific list index when a <code class="language-java">GET</code> request is received. We can adjust our <code class="language-java">@GetMapping</code> annotation to do so.</p> 
   <p>We need to create a simple object to store in our list. Call it <code class="language-java">Task</code>. It will implement a <strong>basic constructor </strong>as well as <strong>getters </strong>and <strong>setters </strong>for each of the object properties:</p> 
@@ -61,8 +60,7 @@ public class TaskController {
   <p></p>
   <div class="alert alert-warning">
    It is very important to implement getters and setters. If they are not implemented, Spring will not be able to display object contents correctly. Spring will try to return all data from our controller in JSON format or similar. To construct a representation of our object that can be read properly, Spring needs getters and setters to access the object properties.
-  </div>
-  <p></p> 
+  </div> 
   <p>After that, we can implement a collection to store our tasks. We are going to use a list. When we work with Spring, we can end up facing a lot of <code class="language-java">GET</code> requests at the same time. In this case, it would be a good idea to use an immutable collection to eliminate any thread-based issues. We also need to make sure that our collection can be used by our application:</p> 
   <pre><code class="language-java">@RestController
 public class TaskController {
@@ -93,8 +91,7 @@ public class TaskController {
    <code class="language-java">RestController</code>. As in case of a list, a 
    <code class="language-java">Set</code> is converted to a JSON array. However, a 
    <code class="language-java">Map</code> is converted to a JSON key-value structure.
-  </div>
-  <p></p> 
+  </div> 
   <h5 id="pathvariable">@PathVariable</h5> 
   <p>We may want to modify the code above so that users could enter an ID to specify which task they would like to retrieve. To do this, we will need to add a <code class="language-java">@PathVariable</code> annotation to <code class="language-java">@GetMapping</code>. The code below shows how we can add an ID to our <code class="language-java">getTask</code> function:</p> 
   <pre><code class="language-java">@RestController

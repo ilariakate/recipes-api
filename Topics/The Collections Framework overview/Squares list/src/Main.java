@@ -8,7 +8,6 @@ class CollectionUtils {
 
     public static Collection<Integer> pow2(Collection<Integer> numbers) {
         // write your code here
-        numbers = Math.pow(numbers, 2);
         return numbers;
     }
 }

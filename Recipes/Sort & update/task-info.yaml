@@ -634,6 +634,137 @@ files:
         }
     }
   learner_created: false
+- name: src/recipes/repository/RecipeRepository.java
+  visible: true
+  text: |
+    package recipes.repository;
+
+    import org.springframework.data.repository.CrudRepository;
+    import recipes.model.Recipe;
+
+    public interface RecipeRepository extends CrudRepository<Recipe, Long> {
+        Recipe findRecipeById(long id);
+    }
+  learner_created: true
+- name: src/recipes/controller/RecipeController.java
+  visible: true
+  text: |
+    package recipes.controller;
+
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.server.ResponseStatusException;
+    import recipes.model.Recipe;
+    import recipes.service.RecipeService;
+
+    import javax.validation.Valid;
+    import java.util.Collections;
+    import java.util.Map;
+
+    @RestController
+    public class RecipeController {
+        @Autowired
+        RecipeService recipeService;
+
+        @PostMapping("/api/recipe/new")
+        public Map<String, Long> addRecipe(@Valid @RequestBody Recipe recipe) {
+            Recipe savedRecipe = recipeService.save(recipe);
+            return Collections.singletonMap("id", savedRecipe.getId());
+        }
+
+        @GetMapping("/api/recipe/{id}")
+        public Recipe getRecipe(@PathVariable long id) {
+            Recipe recipe = recipeService.findRecipeById(id);
+            if (recipe == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+            return recipe;
+        }
+
+        @DeleteMapping("/api/recipe/{id}")
+        @ResponseStatus(HttpStatus.NO_CONTENT)
+        public void deleteRecipe(@PathVariable long id) {
+            Recipe recipe = recipeService.findRecipeById(id);
+            if(recipe == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+            recipeService.deleteRecipeById(id);
+        }
+
+    }
+  learner_created: true
+- name: src/recipes/service/RecipeService.java
+  visible: true
+  text: |
+    package recipes.service;
+
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.stereotype.Service;
+    import recipes.model.Recipe;
+    import recipes.repository.RecipeRepository;
+
+    @Service
+    public class RecipeService {
+        @Autowired
+        RecipeRepository recipeRepository;
+        public Recipe findRecipeById(long id) {
+            return recipeRepository.findRecipeById(id);
+        }
+
+        public Recipe save(Recipe recipe) {
+            return recipeRepository.save(recipe);
+        }
+
+        public void deleteRecipeById(long id) {
+            recipeRepository.deleteById(id);
+        }
+    }
+  learner_created: true
+- name: src/recipes/model/Recipe.java
+  visible: true
+  text: |
+    package recipes.model;
+
+    import com.fasterxml.jackson.annotation.JsonIgnore;
+    import lombok.AllArgsConstructor;
+    import lombok.Data;
+    import lombok.NoArgsConstructor;
+
+    import javax.persistence.*;
+    import javax.validation.constraints.NotBlank;
+    import javax.validation.constraints.NotNull;
+    import javax.validation.constraints.Size;
+    import java.util.List;
+
+    @Entity
+    @Table
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public class Recipe {
+        @Id
+        @GeneratedValue
+        @JsonIgnore
+        private Long id;
+        @NotBlank
+        private String name;
+        @NotBlank
+        private String description;
+        @ElementCollection
+        @NotNull
+        @Size(min = 1)
+        private List<String> ingredients;
+        @ElementCollection
+        @NotNull
+        @Size(min = 1)
+        private List<String> directions;
+    }
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/180/stages/920/implement#comment
-status: Unchecked
-record: -1
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Mon, 23 May 2022 17:25:30 UTC
+record: 4

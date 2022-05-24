@@ -4,7 +4,7 @@
  <body>
   <p>Returning errors to a user is crucial during web application development. When users send an incorrect request that cannot be processed or want to get information on a non-existing object, your web application should let them know what is wrong. There are different general HTTP status codes, for example, <code class="language-json">400</code> for <code class="language-json">Bad Request</code> or <code class="language-json">404</code> for <code class="language-json">Not Found</code>. Handling errors is very important, as it allows users to understand what is wrong right away.</p> 
   <p>Here you will find two ways to return an error message in Spring Boot applications. You can either use the <code class="language-json">ResponseStatusException</code> Spring class or create your own exception using the <code class="language-json">@ResponseStatus</code> annotation. Let's write a simple code and show how it works. </p> 
-  <h5>Controller preparation</h5> 
+  <h5 id="controller-preparation">Controller preparation</h5> 
   <p>Imagine a web app that returns information about a flight by its number. It would look like this in JSON:</p> 
   <pre><code class="language-json">{
   "from": "Berlin Tegel",
@@ -44,7 +44,7 @@ public class FlightController {
 
 }</code></pre> 
   <p>Finally, we are ready to focus on handling exceptions!</p> 
-  <h5>ResponseStatusException</h5> 
+  <h5 id="responsestatusexception">ResponseStatusException</h5> 
   <p>The first way to return an error is to use the <code class="language-json">ResponseStatusException</code> class introduced in Spring 5 for basic error handling as part of <code class="language-json">org.springframework.web.server</code> package. It's <code class="language-json">RuntimeException</code> and that's why we don't need to add it to a method signature. </p> 
   <p>There are three constructors in Spring to generate <code class="language-json">ResponseStatusException</code>:</p> 
   <pre><code class="language-java">ResponseStatusException(HttpStatus status)
@@ -93,7 +93,7 @@ public static FlightInfo getFlightInfo(@PathVariable int id) {
    <code class="language-json">500 Internal Server Error</code>. This status code indicates that something is bad with your server, and it should be fixed because the user requests cannot be processed properly.
   </div>
   <p></p> 
-  <h5>Custom exceptions</h5> 
+  <h5 id="custom-exceptions">Custom exceptions</h5> 
   <p>It is also possible to set the response code and status for the custom exception. We can write a class that extends <code class="language-json">RuntimeException</code> and add the <code class="language-json">@ResponseStatus</code> annotation to the exception like this:</p> 
   <pre><code class="language-java">@ResponseStatus(code = HttpStatus.BAD_REQUEST)
 class FlightNotFoundException extends RuntimeException {
@@ -106,7 +106,7 @@ class FlightNotFoundException extends RuntimeException {
   <p>For example, in the flight controller:</p> 
   <pre><code class="language-java">@GetMapping("flights/{id}")
 public FlightInfo getFlightInfo(@PathVariable int id) {
-    if (id &gt; flightInfoList.size()) {
+    if (id &gt;= flightInfoList.size()) {
         throw new FlightNotFoundException("Flight not found for id =" + id);
     }
     return flightInfoList.get(id);
@@ -115,7 +115,7 @@ public FlightInfo getFlightInfo(@PathVariable int id) {
   <p style="text-align: center;"><img alt="" height="487" name="bad-request2.JPG" src="https://ucarecdn.com/1ed64678-bf88-41b3-954a-34dbbb425aee/" width="679"></p> 
   <p>The main advantage is that we can create our own specific exceptions and keep our code more readable.</p> 
   <p>On the other hand, custom exceptions require implementing additional classes.</p> 
-  <h5>Conclusion</h5> 
+  <h5 id="conclusion">Conclusion</h5> 
   <p>Remember that bad exception processing may result in bugs and low readability. We have considered two ways of handling exceptions in Spring. Now you can: </p> 
   <ul> 
    <li> <p>throw <code class="language-json">ResponseStatusException</code> </p> </li> 
